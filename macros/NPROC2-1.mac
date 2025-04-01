@@ -1,0 +1,53 @@
+# proc.mac
+let c 0
+# let t 0
+# let j 0
+# let s 0
+clrscr
+comment PROGRAM FOR PROCESSING VT-DRIFTS SAMPLE SPECTRA
+comment References all data to s_1 in the Ref Data Folder
+comment
+comment Enter the directory name used for sample data storage
+enter a
+comment Enter the directory name used for reference data
+enter r
+comment
+
+dos mkdir &a\nproc2-1
+            
+open 1 &a\sa_temps.txt
+open 2 &r\ra_temps.txt
+
+label loop
+eof 1
+if &z = 1
+goto end
+# input 1 t
+# rewind 2
+# let j 0
+# label iloop
+# eof 2
+# if &z = 1
+# goto end
+# input 2 s
+# increment j
+# if &s <= &t
+# goto iloop
+# decrement j
+# if &j <= 0
+# let j 1
+increment c
+comment &c &j
+exist &a\s_&c.igm
+if &z = 0
+goto end
+mattproc parms=c:\first\macros\procparm.dat s=&a\s_&c.igm r=&r\s_1.big
+load &a\s_&c.ras
+ras2abs
+# show
+save &a\nproc2-1\s_&c.abs
+goto loop
+label end
+close 1
+close 2
+dos del &a\*.ras                                                           

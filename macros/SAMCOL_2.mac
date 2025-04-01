@@ -1,0 +1,71 @@
+# samcol_2.mac =samcol+ automatically starts Ramp Program1 on Eurotherm TC
+
+let c 0
+let s s_0
+
+clrscr
+comment PROGRAM FOR COLLECTING VT-DRIFTS SAMPLE SPECTRA
+comment
+comment     USING EUROTHERM TEMPERATURE CONTROLLER
+label begin
+comment
+comment Enter the sample data storage name
+enter a
+comment
+label getigms
+exist &a\s_1.igm
+if &z = 0
+goto igmask
+comment Sample spectra exist in &a directory
+ask Do you want to overwrite? (Y/N)
+goto askquit
+goto igmask2
+
+label askquit            
+ask Do you want to quit? (Y/N)
+goto begin
+exit
+
+label igmask
+dos mkdir &a
+label igmask2
+comment
+comment Enter the number of sample spectra to collect
+enter R
+
+label start
+# comment Initalizing - - Please Wait
+mattscan parm=c:\first\macros\scanparm.dat actions=iq quiet=1
+comment SAMPLE SCAN TEMPERATURES > &a\samtemps
+comment SAMPLE SCAN TIMES (min) > &a\samtimes
+# mattscan parm=c:\first\macros\scanparm.dat actions=iq quiet=1
+
+# clrscr
+system avrg_pid.exe
+comment
+comment Press the ENTER key to start data acquisition
+enter e
+system ramp_st.exe
+
+timerStart
+label loop
+increment s
+increment c
+timerCheck
+let B &z
+system rd_pv.exe &a\samtemps
+# mattscan parm=c:\first\macros\scanparm.dat actions=iq quiet=1
+mattscan parm=c:\first\macros\scanparm.dat actions=sq file=&a\&s irdatatype=igm quiet=1
+system rd_pv.exe &a\samtemps
+#
+timerCheck
+let A &z
++ &A &B
+/ &z 120
+comment >> &a\samtimes
+comment &c , &z >> &a\samtimes
+if &c < &R
+goto loop
+system samdata.exe &a
+system w_spid25.exe
+comment
